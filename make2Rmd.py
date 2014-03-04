@@ -5,7 +5,7 @@
 # Version 0.1 is just a parser that linearly wraps the makefile into a Rstudio file. 
 # Version 0.2 order the makefile according to the dependency graph 
 
-filename = "../Signatures/Garnett/exome/Makefile" #the test file 
+filename = "./makefile" #the test file 
 
 #OPTIONS 
 
@@ -43,17 +43,25 @@ for linea in input_file:
 			if code!="":		    #If code has been detected previuously
 				code +="```\n"	    #Close the chunk 
 				#output_file.write(code)  #write in the file 
-				comment_code_graph[target].append(code)
+				comment_code_graph[target]["code"] = code
 				code = ""		 #Initializes the code 
 
 		else:		 # The line is code (= not comment)		
 			isRule = re.search(rule, linea)
 			# is it a rule?
 			if isRule: 
-				target = isRule.group(1)
-				dependencies = isRule.group(2).split()
-				dependency_graph[target] = dependencies
-				makefile_rule_order.append(target)		
+				target = isRule.group(1)  #take the target
+				dependencies = isRule.group(2).split()  #take the dependencies
+				#print target, dependencies  
+				dependency_graph[target] = dependencies  #actualize graph
+				makefile_rule_order.append(target)
+				comment_code_graph[target]= {comment : "", code : ""}
+				
+				if code!="":
+					code +="```\n"	    #Close the chunk 
+					comment_code_graph[target]["code"] = code
+					code = ""
+					
 				
 			else: 
 				if code=="":		#if it is the first line of code
@@ -64,12 +72,15 @@ for linea in input_file:
 
 			if comment!="":  	#If there a previous comment 
 				#output_file.write(comment + "\n")  #write the comment
-				comment_code_graph[target] = [comment]
+				comment_code_graph[target]["comment"] = comment
 				comment = "" 			# initializes it 
 
 
-comment_code_graph[target] = [comment]
-comment_code_graph[target].append(code)
+comment_code_graph[target]["comment"] = comment
+comment_code_graph[target]["code"] = code
+
+print comment_code_graph["utils.o"].get("comment", "")
+
 
 input_file.close()
 
@@ -80,8 +91,10 @@ input_file.close()
 if not LINEAR: 
 	pass
 
-
 # 3. Write the output file according to the graph 
+
+
+
 
 # 3.1. The linear parser 
 output_file =  open(filename + "_wrapped.Rmd", "w")
@@ -90,10 +103,10 @@ if LINEAR:
 	#nrule = 1
 	for target in makefile_rule_order:
 		#print nrule	
-		output_file.write(comment_code_graph[target][0])
+		output_file.write(comment_code_graph[target].get("comment", ""))
 		output_file.write("\n")
 		if len(comment_code_graph[target])>1:
-			output_file.write(comment_code_graph[target][1])
+			output_file.write(comment_code_graph[target].get("code", ""))
 			output_file.write("\n") 
 		#nrule +=1
 
