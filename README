@@ -1,0 +1,5 @@
+make2Rmd
+==========================
+Make2Rmd pretends to be a tool to transform Makefiles into (Rstudio) Markdown literate programming scripts. 
+
+
