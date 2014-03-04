@@ -44,23 +44,23 @@ for linea in input_file:
 				code +="```\n"	    #Close the chunk 
 				#output_file.write(code)  #write in the file 
 				comment_code_graph[target]["code"] = code
+				print target, code
 				code = ""		 #Initializes the code 
 
 		else:		 # The line is code (= not comment)		
 			isRule = re.search(rule, linea)
 			# is it a rule?
-			if isRule: 
+			if isRule:
+				if code!="":
+					code +="```\n"	    #Close the chunk 
+					comment_code_graph[target]["code"] = code
+					code = ""
 				target = isRule.group(1)  #take the target
 				dependencies = isRule.group(2).split()  #take the dependencies
 				#print target, dependencies  
 				dependency_graph[target] = dependencies  #actualize graph
 				makefile_rule_order.append(target)
 				comment_code_graph[target]= {comment : "", code : ""}
-				
-				if code!="":
-					code +="```\n"	    #Close the chunk 
-					comment_code_graph[target]["code"] = code
-					code = ""
 					
 				
 			else: 
@@ -79,7 +79,8 @@ for linea in input_file:
 comment_code_graph[target]["comment"] = comment
 comment_code_graph[target]["code"] = code
 
-print comment_code_graph["utils.o"].get("comment", "")
+print comment_code_graph["kbd.o"].get("code", "")
+
 
 
 input_file.close()
